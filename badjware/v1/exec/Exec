@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import yaml
+
+def eprint(*args, **kwargs):
+    """
+    print to stderr
+    """
+    kwargs['file'] = sys.stderr
+    print(*args, **kwargs)
+
+def kustomize_exec():
+    """
+    execv() the configured path
+    """
+    try:
+        with open(sys.argv[1], 'r') as f:
+            plugin_config = yaml.safe_load(f)
+            path = plugin_config['path']
+        os.execv(path, sys.argv[1:])
+    except Exception as e:
+        if path:
+            eprint('%s: %s' % (path, e))
+        else:
+            eprint(e)
+        sys.exit(1)
+
+if __name__ == '__main__':
+    kustomize_exec()
