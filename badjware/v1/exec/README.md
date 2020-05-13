@@ -8,6 +8,8 @@ Run an arbitrary executable as a plugin.
 
 ## API
 
+All fields with empty default value are required.
+
 Any unspecified fields are ignored, and can be used by the executed plugin.
 
 | Field | Description | Type |  Default | 
