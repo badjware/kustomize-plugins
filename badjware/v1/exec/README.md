@@ -8,11 +8,9 @@ Run an arbitrary executable as a plugin.
 
 ## API
 
-All fields with empty default value are required.
-
 Any unspecified fields are ignored, and can be used by the executed plugin.
 
-| Field | Description | Type |  Default | 
+| Field | Description | Type |  Default |
 | --- | --- | --- | --- |
 | `path` | The path to the executable to execute as a plugin. | string | |
 
@@ -21,7 +19,7 @@ Any unspecified fields are ignored, and can be used by the executed plugin.
 *`kustomization.yaml`*
 ``` yaml
 generators:
-  - exec-example.taml
+  - exec-example.yaml
 ```
 
 *`exec-example.yaml`*
@@ -45,4 +43,14 @@ metadata:
 data:
   foo: bar
 EOF
+```
+
+### Result
+``` yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: example-configmap
+data:
+  foo: bar
 ```

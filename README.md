@@ -30,3 +30,4 @@ The API description is in the directory of each plugins.
 | Type | Name | Description |
 | --- | --- | --- |
 | Any | [Exec](./badjware/v1/exec/README.md) | Run an executable script as a plugin. |
+| Transformer | [PlaceholderTransformer](./badjware/v1/placeholdertransformer/README.md) | Perform arbitrary key/value replacements in kubernetes resources. |
