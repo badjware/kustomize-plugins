@@ -98,13 +98,13 @@ def perform_placeholder_replacements(is_secret, placeholders, data):
         return result
     elif isinstance(data, str):
         if is_secret:
-            return b64encode(PLACEHOLDER_PROG.sub(do_replacement, b64decode(data, validate=False).decode()).encode()).decode()
+            return b64encode(PLACEHOLDER_PROG.sub(do_replacement, b64decode(data).decode()).encode()).decode()
         else:
             return PLACEHOLDER_PROG.sub(do_replacement, data)
     else:
         return data
 
-def kustomize_placeholder_transformer():
+def run_plugin():
     """
     Perform arbitrary key/value replacements in kubernetes resources.
     """
@@ -167,4 +167,4 @@ def kustomize_placeholder_transformer():
     yaml.dump_all(all_resources, sys.stdout, default_flow_style=False)
 
 if __name__ == '__main__':
-    kustomize_placeholder_transformer()
+    run_plugin()

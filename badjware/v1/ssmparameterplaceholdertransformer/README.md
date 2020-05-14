@@ -1,6 +1,6 @@
 # SSMParameterPlaceholderTransformer
 
-Perform arbitrary key/value replacements in kubernetes resources with values from [AWS Systems Manager Parameters](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html). Placeholders are delimited with `${ssm:<parameter_name>}`.
+Perform arbitrary key/value replacements in kubernetes resources with values from [AWS Systems Manager Parameters](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html). Placeholders are delimited with `${ssm:<parameter_name>}`.If a placeholder is found, but no matching parameter is found, the placeholder is left as-is.
 
 Support `Secret` by decoding the base64 encoded data, performing the replacement, and encoding back the result in base64.
 

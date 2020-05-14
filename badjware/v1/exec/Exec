@@ -11,7 +11,7 @@ def eprint(*args, **kwargs):
     kwargs['file'] = sys.stderr
     print(*args, **kwargs)
 
-def kustomize_exec():
+def run_plugin():
     """
     execv() the configured path.
     """
@@ -31,4 +31,4 @@ def kustomize_exec():
         sys.exit(1)
 
 if __name__ == '__main__':
-    kustomize_exec()
+    run_plugin()
