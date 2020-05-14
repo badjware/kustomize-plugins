@@ -7,8 +7,13 @@ import re
 
 from types import SimpleNamespace
 from base64 import b64encode, b64decode
+from functools import lru_cache
 
-PLACEHOLDER_PROG = re.compile(r'\$\{\s*(\w+)\s*\}')
+import boto3
+
+from botocore.exceptions import ClientError
+
+PLACEHOLDER_PROG = re.compile(r'\$\{\s*env:([a-zA-Z0-9_]+)\s*\}')
 
 def eprint(*args, **kwargs):
     """
@@ -26,71 +31,39 @@ def load_config():
     # load
     with open(sys.argv[1], 'r') as f:
         plugin_config = yaml.safe_load(f)
-        placeholders = plugin_config.get('placeholders')
-        placeholders_file = plugin_config.get('placeholdersFile')
-        resource_selectors = plugin_config.get('resourceSelectors', [])
-
-    # validation
-    validation_fail = False
-    if not placeholders_file:
-        eprint('One of placeholders or placeholdersFile is required')
-        validation_fail = True
-    if validation_fail:
-        sys.exit(1)
+        resource_selectors = plugin_config.get('resourceSelectors', [{
+            'kind': 'Secret'
+        }])
 
     return SimpleNamespace(
-        placeholders=placeholders,
-        placeholders_file=placeholders_file,
         resource_selectors=resource_selectors
     )
 
-def parse_dotenv(filename):
-    """
-    Load and parse a file in the dotenv format. Exit on error.
-    :param str filename: the path the the file to load
-    :return: a dict of key/value loaded from the file
-    :rtype: dict
-    """
-    values = {}
-    linenum = 0
-    try:
-        with open(filename, 'r') as f:
-            for line in f.readlines():
-                linenum += 1
-                if line and not line.startswith('#'):
-                    key, value = line.rstrip('\n').split('=', 1)
-                    values[key] = value
-    except ValueError:
-        eprint('%s: line %s: invalid format' % (filename, linenum))
-        sys.exit(1)
-    return values
-
-def perform_placeholder_replacements(is_secret, placeholders, data):
+def perform_placeholder_replacements(is_secret, data):
     """
     Recursively perform placeholder replacement to arbitrary data.
     :param bool is_secret: wether the the data is from a secret that need to be base64 decoded
-    :param dict placeholders: a dict of placeholders for the replacements
     :param data: the data to operate on. can be of any type, but replacement will only be performed on list, dict or str
     :rtype: same type then data
     """
     def do_replacement(match):
         """
-        Perform the replacement. If the matched value is absent from the placeholders, no replacement is performed
+        Perform the replacement. If the matched value is absent from the environment variable, no replacement is performed
         :param Match match: the match object with a single capture group
         :return: the replacement
         :rtype: str
         """
-        return placeholders.get(match.group(1), match.group(0))
+        return os.environ.get(match.group(1), match.group(0))
 
     if isinstance(data, dict):
         result = {}
         for key, value in data.items():
-            result[key] = perform_placeholder_replacements(is_secret, placeholders, value)
+            result[key] = perform_placeholder_replacements(is_secret, value)
         return result
     elif isinstance(data, list):
         result = []
         for value in data:
-            result.append(perform_placeholder_replacements(is_secret, placeholders, value))
+            result.append(perform_placeholder_replacements(is_secret, value))
         return result
     elif isinstance(data, str):
         if is_secret:
@@ -106,14 +79,6 @@ def run_plugin():
     """
     config = load_config()
     all_resources = []
-
-    # load placeholders
-    if config.placeholders:
-        placeholders = config.placeholders
-    else:
-        placeholders = {}
-    if config.placeholders_file:
-        placeholders.update(parse_dotenv(config.placeholders_file))
 
     for resource in yaml.safe_load_all(sys.stdin.read()):
         # extract all the fields for selector matching
@@ -154,10 +119,10 @@ def run_plugin():
             for key, value in resource.items():
                 # secret is a special case
                 if(resource_spec['kind'] == 'Secret'):
-                    resource['data'] = perform_placeholder_replacements(True, placeholders, resource['data'])
+                    resource['data'] = perform_placeholder_replacements(True, resource['data'])
                 # exclude these top-level fields from placeholder replacement
                 elif key not in ('apiVersion', 'kind', 'metadata'):
-                    resource[key] = perform_placeholder_replacements(False, placeholders, value)
+                    resource[key] = perform_placeholder_replacements(False, value)
 
         all_resources.append(resource)
     yaml.dump_all(all_resources, sys.stdout, default_flow_style=False)

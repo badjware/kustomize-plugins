@@ -1,6 +1,6 @@
-# SSMParameterPlaceholderTransformer
+# EnvironmentPlaceholderTransformer
 
-Perform arbitrary key/value replacements in kubernetes resources with values from [AWS Systems Manager Parameters](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html). Placeholders are delimited with `${ssm:<parameter_name>}`. If a placeholder is found, but no matching parameter is available, the placeholder is left as-is.
+Perform arbitrary key/value replacements in kubernetes resources with values from the environment variables. Placeholders are delimited with `${env:<parameter_name>}`. If a placeholder is found, but no matching environment variable is available, the placeholder is left as-is.
 
 Support `Secret` by decoding the base64 encoded data, performing the replacement, and encoding back the result in base64.
 
@@ -9,7 +9,6 @@ No replacement is performed on the fields `apiVersion`, `kind` and `metadata`.
 ## Dependencies
 
 * PyYAML
-* boto3
 
 ## API
 
@@ -28,31 +27,32 @@ No replacement is performed on the fields `apiVersion`, `kind` and `metadata`.
 
 
 ## Example
-*with awscli*
-``` bash
-aws ssm put-parameter --name "foo" --type SecureString --value "my_secret"
-```
 
 *`kustomization.yaml`*
 ``` yaml
 configmapGenerator:
   - name: example-configmap
     literals:
-      - foo=${ssm:foo}
+      - foo=${env:foo}
 
 transformers:
-  - ssm-example.yaml
+  - env-example.yaml
 ```
 
-*`ssm-example.yaml`*
+*`env-example.yaml`*
 ``` yaml
 apiVersion: badjware/v1
-kind: SSMParameterPlaceholderTransformer
+kind: EnvironmentPlaceholderTransformer
 metadata:
   name: not-important
 resourceSelectors:
   - kind: ConfigMap
     name: example-configmap
+```
+
+*run this way*
+``` bash
+env foo=my_secret kustomize build --enable_alpha_plugins .
 ```
 
 ### Result
