@@ -19,7 +19,7 @@ def kustomize_exec():
         with open(sys.argv[1], 'r') as f:
             plugin_config = yaml.safe_load(f)
             path = plugin_config['path']
-        os.execv(path, sys.argv[1:])
+        os.execv(path, sys.argv)
     except Exception as e:
         if path:
             eprint('%s: %s' % (path, e))
