@@ -51,7 +51,7 @@ metadata:
 placeholders:
   foo: my_first_placeholder
 placeholdersFile: placeholders.txt
-resourceSelector:
+resourceSelectors:
   - type: ConfigMap
     name: example-configmap
 ```
