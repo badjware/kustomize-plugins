@@ -104,7 +104,7 @@ def perform_placeholder_replacements(is_secret, placeholders, data):
 
 def kustomize_placeholder_transformer():
     """
-    Perform key/value replacements in kubernetes resources.
+    Perform arbitrary key/value replacements in kubernetes resources.
     """
     config = load_config()
     placeholders = parse_dotenv(config.placeholder_file)

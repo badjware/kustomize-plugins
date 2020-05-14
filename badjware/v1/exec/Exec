@@ -6,14 +6,14 @@ import yaml
 
 def eprint(*args, **kwargs):
     """
-    print to stderr
+    Print to stderr.
     """
     kwargs['file'] = sys.stderr
     print(*args, **kwargs)
 
 def kustomize_exec():
     """
-    execv() the configured path
+    execv() the configured path.
     """
     try:
         with open(sys.argv[1], 'r') as f:
