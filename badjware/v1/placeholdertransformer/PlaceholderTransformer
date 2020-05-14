@@ -26,19 +26,21 @@ def load_config():
     # load
     with open(sys.argv[1], 'r') as f:
         plugin_config = yaml.safe_load(f)
-        placeholder_file = plugin_config.get('placeholderFile')
+        placeholders = plugin_config.get('placeholders')
+        placeholders_file = plugin_config.get('placeholdersFile')
         resource_selectors = plugin_config.get('resourceSelectors', [])
 
     # validation
     validation_fail = False
-    if not placeholder_file:
-        eprint('placeholderFile is required')
+    if not placeholders_file:
+        eprint('One of placeholders or placeholdersFile is required')
         validation_fail = True
     if validation_fail:
         sys.exit(1)
 
     return SimpleNamespace(
-        placeholder_file=placeholder_file,
+        placeholders=placeholders,
+        placeholders_file=placeholders_file,
         resource_selectors=resource_selectors
     )
 
@@ -107,8 +109,15 @@ def kustomize_placeholder_transformer():
     Perform arbitrary key/value replacements in kubernetes resources.
     """
     config = load_config()
-    placeholders = parse_dotenv(config.placeholder_file)
     all_resources = []
+
+    # load placeholders
+    if config.placeholders:
+        placeholders = config.placeholders
+    else:
+        placeholders = {}
+    if config.placeholders_file:
+        placeholders.update(parse_dotenv(config.placeholders_file))
 
     for resource in yaml.safe_load_all(sys.stdin.read()):
         # extract all the fields for selector matching
