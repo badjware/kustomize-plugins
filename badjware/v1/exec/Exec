@@ -18,7 +18,10 @@ def kustomize_exec():
     try:
         with open(sys.argv[1], 'r') as f:
             plugin_config = yaml.safe_load(f)
-            path = plugin_config['path']
+            path = plugin_config.get('path')
+        if not path:
+            eprint('path is required')
+            sys.exit(1)
         os.execv(path, sys.argv)
     except Exception as e:
         if path:
