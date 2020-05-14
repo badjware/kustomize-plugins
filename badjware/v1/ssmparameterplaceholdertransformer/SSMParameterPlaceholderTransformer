@@ -53,8 +53,12 @@ def get_ssm_parameter(parameter_name):
             Name=parameter_name,
             WithDecryption=True
         )['Parameter']['Value']
-    except ClientError:
-        return None
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ParameterNotFound':
+            return None
+        else:
+            eprint(e)
+            sys.exit(1)
 
 def perform_placeholder_replacements(is_secret, data):
     """
