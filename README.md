@@ -30,6 +30,7 @@ The API description is in the directory of each plugins.
 | Type | Name | Description |
 | --- | --- | --- |
 | Any | [Exec](./badjware/v1/exec/README.md) | Run an executable script as a plugin. |
+| Generator | [RemoteResources](./badjware/v1/remoteresources/README.md) | Download kubernetes resources from a remote location. |
 | Transformer | [PlaceholderTransformer](./badjware/v1/placeholdertransformer/README.md) | Perform arbitrary key/value replacements in kubernetes resources. |
 | Transformer | [SSMParameterPlaceholderTransformer](./badjware/v1/ssmparameterplaceholdertransformer/README.md) | Perform arbitrary key/value replacements in kubernetes resources with values from [AWS Systems Manager Parameters](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html). |
 | Transformer | [EnvironmentPlaceholderTransformer](./badjware/v1/environmentplaceholdertransformer/README.md) | Perform arbitrary key/value replacements in kubernetes resources with values from the environment variables. |
