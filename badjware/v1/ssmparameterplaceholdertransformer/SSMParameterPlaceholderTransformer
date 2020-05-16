@@ -60,11 +60,11 @@ def get_ssm_parameter(parameter_name):
             eprint(e)
             sys.exit(1)
 
-def perform_placeholder_replacements(is_secret, data):
+def perform_placeholder_replacements(data, is_secret):
     """
     Recursively perform placeholder replacement to arbitrary data.
-    :param bool is_secret: wether the the data is from a secret that need to be base64 decoded
     :param data: the data to operate on. can be of any type, but replacement will only be performed on list, dict or str
+    :param bool is_secret: wether the the data is from a secret that need to be base64 decoded
     :rtype: same type then data
     """
     def do_replacement(match):
@@ -83,12 +83,12 @@ def perform_placeholder_replacements(is_secret, data):
     if isinstance(data, dict):
         result = {}
         for key, value in data.items():
-            result[key] = perform_placeholder_replacements(is_secret, value)
+            result[key] = perform_placeholder_replacements(value, is_secret)
         return result
     elif isinstance(data, list):
         result = []
         for value in data:
-            result.append(perform_placeholder_replacements(is_secret, value))
+            result.append(perform_placeholder_replacements(value, is_secret))
         return result
     elif isinstance(data, str):
         if is_secret:
@@ -144,10 +144,13 @@ def run_plugin():
             for key, value in resource.items():
                 # secret is a special case
                 if(resource_spec['kind'] == 'Secret'):
-                    resource['data'] = perform_placeholder_replacements(True, resource['data'])
+                    if 'data' in resource:
+                        resource['data'] = perform_placeholder_replacements(resource['data'], True)
+                    if 'tls' in resource:
+                        resource['tls'] = perform_placeholder_replacements(resource['tls'], True)
                 # exclude these top-level fields from placeholder replacement
                 elif key not in ('apiVersion', 'kind', 'metadata'):
-                    resource[key] = perform_placeholder_replacements(False, value)
+                    resource[key] = perform_placeholder_replacements(value, False)
 
         all_resources.append(resource)
     yaml.dump_all(all_resources, sys.stdout, default_flow_style=False)
