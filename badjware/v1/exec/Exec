@@ -4,12 +4,8 @@ import os
 import sys
 import yaml
 
-def eprint(*args, **kwargs):
-    """
-    Print to stderr.
-    """
-    kwargs['file'] = sys.stderr
-    print(*args, **kwargs)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import common as c
 
 def run_plugin():
     """
@@ -20,14 +16,14 @@ def run_plugin():
             plugin_config = yaml.safe_load(f)
             path = plugin_config.get('path')
         if not path:
-            eprint('path is required')
+            c.eprint('path is required')
             sys.exit(1)
         os.execv(path, sys.argv)
     except Exception as e:
         if path:
-            eprint('%s: %s' % (path, e))
+            c.eprint('%s: %s' % (path, e))
         else:
-            eprint(e)
+            c.eprint(e)
         sys.exit(1)
 
 if __name__ == '__main__':

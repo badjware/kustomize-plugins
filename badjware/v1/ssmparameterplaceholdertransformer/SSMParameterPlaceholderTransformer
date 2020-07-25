@@ -10,17 +10,12 @@ from base64 import b64encode, b64decode
 from functools import lru_cache
 
 import boto3
-
 from botocore.exceptions import ClientError
 
-PLACEHOLDER_PROG = re.compile(r'\$\{\s*ssm:([a-zA-Z0-9_.-/]+)\s*\}')
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import common as c
 
-def eprint(*args, **kwargs):
-    """
-    Print to stderr.
-    """
-    kwargs['file'] = sys.stderr
-    print(*args, **kwargs)
+PLACEHOLDER_PROG = re.compile(r'\$\{\s*ssm:([a-zA-Z0-9_.\-/]+)\s*\}')
 
 def load_config():
     """
@@ -31,9 +26,7 @@ def load_config():
     # load
     with open(sys.argv[1], 'r') as f:
         plugin_config = yaml.safe_load(f)
-        resource_selectors = plugin_config.get('resourceSelectors', [{
-            'kind': 'Secret'
-        }])
+        resource_selectors = plugin_config.get('resourceSelectors', [])
 
     return SimpleNamespace(
         resource_selectors=resource_selectors
@@ -57,46 +50,21 @@ def get_ssm_parameter(parameter_name):
         if e.response['Error']['Code'] == 'ParameterNotFound':
             return None
         else:
-            eprint(e)
+            c.print(e)
             sys.exit(1)
 
-def perform_placeholder_replacements(data, is_secret):
+def ssm_replacement_func(match):
     """
-    Recursively perform placeholder replacement to arbitrary data.
-    :param data: the data to operate on. can be of any type, but replacement will only be performed on list, dict or str
-    :param bool is_secret: wether the the data is from a secret that need to be base64 decoded
-    :rtype: same type then data
+    Perform the replacement. If the matched value is absent from the parameters, no replacement is performed
+    :param Match match: the match object with a single capture group
+    :return: the replacement
+    :rtype: str
     """
-    def do_replacement(match):
-        """
-        Perform the replacement. If the matched value is absent from the parameters, no replacement is performed
-        :param Match match: the match object with a single capture group
-        :return: the replacement
-        :rtype: str
-        """
-        placeholder = get_ssm_parameter(match.group(1))
-        if placeholder is not None:
-            return placeholder
-        else:
-            return match.group(0)
-
-    if isinstance(data, dict):
-        result = {}
-        for key, value in data.items():
-            result[key] = perform_placeholder_replacements(value, is_secret)
-        return result
-    elif isinstance(data, list):
-        result = []
-        for value in data:
-            result.append(perform_placeholder_replacements(value, is_secret))
-        return result
-    elif isinstance(data, str):
-        if is_secret:
-            return b64encode(PLACEHOLDER_PROG.sub(do_replacement, b64decode(data).decode()).encode()).decode()
-        else:
-            return PLACEHOLDER_PROG.sub(do_replacement, data)
+    placeholder = get_ssm_parameter(match.group(1))
+    if placeholder is not None:
+        return placeholder
     else:
-        return data
+        return match.group(0)
 
 def run_plugin():
     """
@@ -106,51 +74,18 @@ def run_plugin():
     all_resources = []
 
     for resource in yaml.safe_load_all(sys.stdin.read()):
-        # extract all the fields for selector matching
-        resource_component = resource.get('apiVersion').split('/')
-        if len(resource_component) == 1:
-            group = 'apps'
-            version = resource_component[0]
-        else:
-            group = resource_component[0]
-            version = resource_component[1]
-        resource_spec = {
-            'group': group,
-            'version': version,
-            'kind': resource.get('kind'),
-            'name': resource.get('metadata').get('name'),
-            'namespace': resource.get('metadata').get('namespace', 'default')
-        }
-
-        do_placeholder_replacements = False
-        if config.resource_selectors:
-            # check if the resource match a selector
-            for selector in config.resource_selectors:
-                match = True
-                for name, value in selector.items():
-                    if resource_spec.get(name) != value:
-                        # no match, we break out
-                        match = False
-                        break
-                if match:
-                    # we have a match, we can perform placeholder replacement
-                    do_placeholder_replacements = True
-                    break
-        else:
-            # if there is no selector, we perform replacement in all the resources
-            do_placeholder_replacements = True
-        
-        if do_placeholder_replacements:
+        is_resource_match, resource_metadata = c.resource_match_selectors(resource, config.resource_selectors)
+        if is_resource_match:
             for key, value in resource.items():
                 # secret is a special case
-                if(resource_spec['kind'] == 'Secret'):
+                if(resource_metadata['kind'] == 'Secret'):
                     if 'data' in resource:
-                        resource['data'] = perform_placeholder_replacements(resource['data'], True)
+                        resource['data'] = c.perform_placeholder_replacements(resource['data'], PLACEHOLDER_PROG, ssm_replacement_func, True)
                     if 'tls' in resource:
-                        resource['tls'] = perform_placeholder_replacements(resource['tls'], True)
+                        resource['tls'] = c.perform_placeholder_replacements(resource['tls'], PLACEHOLDER_PROG, ssm_replacement_func, True)
                 # exclude these top-level fields from placeholder replacement
                 elif key not in ('apiVersion', 'kind', 'metadata'):
-                    resource[key] = perform_placeholder_replacements(value, False)
+                    resource[key] = c.perform_placeholder_replacements(value, PLACEHOLDER_PROG, c.get_default_replacement_func(os.environ), False)
 
         all_resources.append(resource)
     yaml.dump_all(all_resources, sys.stdout, default_flow_style=False)

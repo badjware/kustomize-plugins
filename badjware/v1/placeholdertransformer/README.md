@@ -52,7 +52,7 @@ placeholders:
   foo: my_first_placeholder
 placeholdersFile: placeholders.txt
 resourceSelectors:
-  - type: ConfigMap
+  - kind: ConfigMap
     name: example-configmap
 ```
 

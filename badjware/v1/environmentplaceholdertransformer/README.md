@@ -14,7 +14,7 @@ No replacement is performed on the fields `apiVersion`, `kind` and `metadata`.
 
 | Field | Description | Type |  Default |
 | --- | --- | --- | --- |
-| `resourceSelectors` | Selectors to specify on which resources to perform the replacements. Perform replacement only on `Secret`s by default. | list of ResourceSelector | `[{'kind':'Secret'}]` |
+| `resourceSelectors` | Selectors to specify on which resources to perform the replacements. | list of ResourceSelector | `[{'kind':'Secret'}]` |
 
 ## ResourceSelector
 | Field | Description | Type |  Default |

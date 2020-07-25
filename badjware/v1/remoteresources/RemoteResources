@@ -9,7 +9,8 @@ from types import SimpleNamespace
 from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
 
-from botocore.exceptions import ClientError
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import common as c
 
 def eprint(*args, **kwargs):
     """
@@ -32,11 +33,11 @@ def load_config():
     # validation
     validation_fail = False
     if not resources:
-        eprint('resources is required')
+        c.eprint('resources is required')
         validation_fail = True
     for resource in resources:
         if 'url' not in resource:
-            eprint('resources.url is required')
+            c.eprint('resources.url is required')
             validation_fail = True
             break
     if validation_fail:
@@ -57,9 +58,9 @@ def validate_sha256(source, data, expected):
     sha256.update(data)
     actual = sha256.hexdigest()
     if expected != actual:
-        eprint("sha256 checksum validation failed for", source)
-        eprint("expected:", expected)
-        eprint("actual:  ", actual)
+        c.eprint("sha256 checksum validation failed for", source)
+        c.eprint("expected:", expected)
+        c.eprint("actual:  ", actual)
         sys.exit(1)
 
 def run_plugin():
@@ -78,18 +79,18 @@ def run_plugin():
                 validate_sha256(url, data, resource['sha256'])
             all_resources = all_resources + list(yaml.safe_load_all(data))
     except yaml.YAMLError as e:
-        eprint("%s: invalid yaml" % url)
+        c.eprint("%s: invalid yaml" % url)
         if hasattr(e, 'problem_mark'):
-            eprint(e.problem_mark)
-            eprint(e.problem)
+            c.eprint(e.problem_mark)
+            c.eprint(e.problem)
             if e.context is not None:
-                eprint(e.context)
+                c.eprint(e.context)
         sys.exit(1)
     except HTTPError as e:
-        eprint("%s: %s %s" % (url, e.code, e.reason))
+        c.eprint("%s: %s %s" % (url, e.code, e.reason))
         sys.exit(1)
     except URLError as e:
-        eprint("%s: %s" % (url, e.reason))
+        c.eprint("%s: %s" % (url, e.reason))
         sys.exit(1)
     yaml.dump_all(all_resources, sys.stdout, default_flow_style=False)
 
