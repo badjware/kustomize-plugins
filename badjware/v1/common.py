@@ -1,4 +1,5 @@
 import sys
+from base64 import b64encode, b64decode
 
 def eprint(*args, **kwargs):
     """
@@ -19,31 +20,27 @@ def resource_match_selectors(resource, resource_selectors):
     # extract all the fields for selector matching
     resource_component = resource.get('apiVersion').split('/')
     if len(resource_component) == 1:
-        group = None
+        group = ''
         version = resource_component[0]
     else:
         group = resource_component[0]
         version = resource_component[1]
     
     resource_metadata = {
+        'group': group,
+        'version': version,
         'kind': resource.get('kind'),
         'name': resource.get('metadata').get('name'),
+        'namespace': resource.get('metadata').get('namespace')
     }
-
-    if group:
-        resource_metadata['group'] = group
-    if version:
-        resource_metadata['version'] = version
-    if 'namespace' in resource.get('metadata'):
-        resource_metadata['namespace']: resource.get('metadata').get('namespace')
 
     do_placeholder_replacements = False
     if resource_selectors:
         # check if the resource match a selector
         for selector in resource_selectors:
             match = True
-            for name, value in selector.items():(os.environ)
-                if resource_metadata.get(name) != value:
+            for selector_name, selector_value in selector.items():
+                if resource_metadata.get(selector_name) != selector_value:
                     # no match, we break out
                     match = False
                     break
