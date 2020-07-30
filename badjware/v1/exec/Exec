@@ -1,30 +1,5 @@
 #!/usr/bin/env python3
-
-import os
-import sys
-import yaml
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import common as c
-
-def run_plugin():
-    """
-    execv() the configured path.
-    """
-    try:
-        with open(sys.argv[1], 'r') as f:
-            plugin_config = yaml.safe_load(f)
-            path = plugin_config.get('path')
-        if not path:
-            c.eprint('path is required')
-            sys.exit(1)
-        os.execv(path, sys.argv)
-    except Exception as e:
-        if path:
-            c.eprint('%s: %s' % (path, e))
-        else:
-            c.eprint(e)
-        sys.exit(1)
+import plugin
 
 if __name__ == '__main__':
-    run_plugin()
+    plugin.run_plugin()

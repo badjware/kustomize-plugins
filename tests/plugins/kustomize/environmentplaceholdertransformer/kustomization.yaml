@@ -1,0 +1,7 @@
+configmapGenerator:
+  - name: example-configmap
+    literals:
+      - foo=${env:foo}
+
+transformers:
+  - env-example.yaml

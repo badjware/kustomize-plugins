@@ -1,0 +1,8 @@
+configmapGenerator:
+  - name: example-configmap
+    literals:
+      - foo=${foo}
+      - bar=${bar}
+
+transformers:
+  - placeholder-example.yaml

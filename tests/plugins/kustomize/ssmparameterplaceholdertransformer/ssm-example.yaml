@@ -1,0 +1,7 @@
+apiVersion: badjware/v1
+kind: SSMParameterPlaceholderTransformer
+metadata:
+  name: not-important
+resourceSelectors:
+  - kind: ConfigMap
+    name: example-configmap

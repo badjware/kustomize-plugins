@@ -13,8 +13,8 @@ class TestCommon(unittest.TestCase):
             'apiVersion': 'v1',
             'kind': 'ConfigMap',
             'metadata': {
-                'name': 'exemple-configmap',
-                'namespace': 'exemple',
+                'name': 'example-configmap',
+                'namespace': 'example',
                 'labels': {
                     'foo': 'bar',
                 },
@@ -25,8 +25,8 @@ class TestCommon(unittest.TestCase):
             'apiVersion': 'v1',
             'kind': 'Secret',
             'metadata': {
-                'name': 'exemple-secret',
-                'namespace': 'exemple',
+                'name': 'example-secret',
+                'namespace': 'example',
                 'labels': {
                     'foo': 'bar',
                 },
@@ -37,13 +37,13 @@ class TestCommon(unittest.TestCase):
             'apiVersion': 'app/v1',
             'kind': 'Deployment',
             'metadata': {
-                'name': 'exemple-deployment',
-                'namespace': 'exemple',
+                'name': 'example-deployment',
+                'namespace': 'example',
                 'labels': {
                     'foo': 'bar',
                 },
             },
-            'spec': {} # not important for the purpose of the test
+            'spec': {}, # not important for the purpose of the test
         }
         self.placeholder_prog = re.compile('(foo)')
 
@@ -67,8 +67,8 @@ class TestCommon(unittest.TestCase):
             'group': '',
             'version': 'v1',
             'kind': 'ConfigMap',
-            'name': 'exemple-configmap',
-            'namespace': 'exemple',
+            'name': 'example-configmap',
+            'namespace': 'example',
         }, match_metadata)
 
     def test_resource_match_selectors_group_all(self):
@@ -81,8 +81,8 @@ class TestCommon(unittest.TestCase):
             'group': 'app',
             'version': 'v1',
             'kind': 'Deployment',
-            'name': 'exemple-deployment',
-            'namespace': 'exemple',
+            'name': 'example-deployment',
+            'namespace': 'example',
         }, match_metadata)
     
     def test_resource_match_kind(self):
@@ -97,13 +97,13 @@ class TestCommon(unittest.TestCase):
 
     def test_resource_match_kind_and_name(self):
         selector = [{
-            'name': 'exemple1',
+            'name': 'example1',
             'kind': 'ConfigMap',
         }]
         configmap_resource1 = copy.deepcopy(self.configmap_resource)
-        configmap_resource1['metadata']['name'] = 'exemple1'
+        configmap_resource1['metadata']['name'] = 'example1'
         configmap_resource2 = copy.deepcopy(self.configmap_resource)
-        configmap_resource2['metadata']['name'] = 'exemple2'
+        configmap_resource2['metadata']['name'] = 'example2'
         is_configmap1_match, _ = c.resource_match_selectors(configmap_resource1, selector)
         is_configmap2_match, _ = c.resource_match_selectors(configmap_resource2, selector)
 

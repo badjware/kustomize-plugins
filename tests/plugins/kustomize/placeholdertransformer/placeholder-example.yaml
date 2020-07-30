@@ -1,0 +1,10 @@
+apiVersion: badjware/v1
+kind: PlaceholderTransformer
+metadata:
+  name: not-important
+placeholders:
+  foo: my_first_placeholder
+placeholdersFile: placeholders.txt
+resourceSelectors:
+  - kind: ConfigMap
+    name: example-configmap

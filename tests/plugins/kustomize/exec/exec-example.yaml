@@ -1,0 +1,5 @@
+apiVersion: badjware/v1
+kind: Exec
+metadata:
+  name: not-important
+path: plugin.sh

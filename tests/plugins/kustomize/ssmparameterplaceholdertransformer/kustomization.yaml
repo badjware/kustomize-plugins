@@ -1,0 +1,7 @@
+configmapGenerator:
+  - name: example-configmap
+    literals:
+      - foo=${ssm:foo}
+
+transformers:
+  - ssm-example.yaml
