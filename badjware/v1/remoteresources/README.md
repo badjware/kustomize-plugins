@@ -17,6 +17,7 @@ Download kubernetes resources from a remote location with an optional sha256 che
 | --- | --- | --- | --- |
 | `url` | The url of the resource. | string | |
 | `sha256` | An optional sha256 checksum of the resource. | string | |
+| `patches` | An optional list of patches to apply on the download before parsing. | list of string | |
 
 ## Example
 

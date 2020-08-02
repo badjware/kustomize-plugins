@@ -1,6 +1,8 @@
 import os
 import sys
 import hashlib
+import tempfile
+import subprocess
 import yaml
 
 from types import SimpleNamespace
@@ -45,14 +47,38 @@ def validate_sha256(source, data, expected):
     :param bytes data: the data to validate
     :param str expected: expected sha256 digest
     """
-    sha256 = hashlib.sha256()
-    sha256.update(data)
-    actual = sha256.hexdigest()
-    if expected != actual:
-        c.eprint("sha256 checksum validation failed for", source)
-        c.eprint("expected:", expected)
-        c.eprint("actual:  ", actual)
-        raise Exception()
+
+def get_resource(url, expected_sha256=None, patches=None):
+    with urlopen(url) as f:
+        data = f.read()
+    if expected_sha256:
+        sha256 = hashlib.sha256()
+        sha256.update(data)
+        actual_sha256 = sha256.hexdigest()
+        if expected_sha256 != actual_sha256:
+            c.eprint("sha256 checksum validation failed for", url)
+            c.eprint("expected:", expected_sha256)
+            c.eprint("actual:  ", actual_sha256)
+            raise Exception()
+    if patches:
+        for patch in patches:
+            with tempfile.NamedTemporaryFile() as data_f:
+                data_f.write(data)
+                data_f.flush()
+                try:
+                    proc = subprocess.run(
+                        ['patch', '--ignore-whitespace', '--output=-', data_f.name, patch],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        encoding='utf8',
+                        check=True,
+                    )
+                    data = proc.stdout
+                except subprocess.CalledProcessError as e:
+                    c.eprint(e.output)
+                    c.eprint('failed to apply patch %s with exit status %s ' % (patch, e.returncode))
+                    raise e
+    return list(yaml.safe_load_all(data))
 
 def run_plugin():
     """
@@ -63,12 +89,7 @@ def run_plugin():
 
     try:
         for resource in config.resources:
-            url = resource['url']
-            with urlopen(url) as f:
-                data = f.read()
-            if 'sha256' in resource:
-                validate_sha256(url, data, resource['sha256'])
-            all_resources = all_resources + list(yaml.safe_load_all(data))
+            all_resources = all_resources + get_resource(resource['url'], resource.get('sha256'), resource.get('patches'))
     except yaml.YAMLError as e:
         c.eprint("%s: invalid yaml" % url)
         if hasattr(e, 'problem_mark'):

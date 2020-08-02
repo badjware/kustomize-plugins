@@ -3,5 +3,5 @@ kind: RemoteResources
 metadata:
   name: not-important
 resources:
-  - url: https://gist.githubusercontent.com/badjware/47ef8b77e0bd918a959a36c1774b9ee0/raw/9918b504d87ed58cd9cbcb90f60e7d03ca34ca5e/kustomize-remoteresources-test-input.yaml
-    sha256: fde0f553b0448a8124265fb051e0b49ac6a09902705e84d56c3dc909d89251ba
+  - url: https://gist.githubusercontent.com/badjware/47ef8b77e0bd918a959a36c1774b9ee0/raw/031b9fbd3fa2ded730d0fa42e03c0fbd4145d360/kustomize-remoteresources-test-input.yaml
+    sha256: 53515f4dc51af92ba9bb2a87927c53b86e27e1e3e6fcd76e814ef1f0615714c4

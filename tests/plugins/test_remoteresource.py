@@ -45,6 +45,23 @@ class TestRemoteResources(unittest.TestCase):
 
         self.assertEqual(yaml.safe_load(stdout.getvalue()), yaml.safe_load(expected_result))
 
+    def test_remoteresources_patch_valid(self):
+        expected_result = """
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+            name: example-configmap
+        data:
+            foo: baz
+        """
+
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            sys.argv.append('remoteresources-example-patch.yaml')
+            plugin.run_plugin()
+
+        self.assertEqual(yaml.safe_load(stdout.getvalue()), yaml.safe_load(expected_result))
+
     def test_remoteresources_invalid(self):
         with self.assertRaises(Exception):
             sys.argv.append('remoteresources-example-invalid.yaml')
