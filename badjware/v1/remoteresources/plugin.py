@@ -40,14 +40,6 @@ def load_config():
         resources=resources
     )
 
-def validate_sha256(source, data, expected):
-    """
-    Validate the sha256 checksum of some data. Exit validation failure.
-    :param str source: the source of the data, appear in an error message on validation failure
-    :param bytes data: the data to validate
-    :param str expected: expected sha256 digest
-    """
-
 def get_resource(url, expected_sha256=None, patches=None):
     with urlopen(url) as f:
         data = f.read()
@@ -73,9 +65,9 @@ def get_resource(url, expected_sha256=None, patches=None):
                         encoding='utf8',
                         check=True,
                     )
-                    data = proc.stdout
+                    data = proc.stdout.encode()
                 except subprocess.CalledProcessError as e:
-                    c.eprint(e.output)
+                    c.eprint(e.stderr)
                     c.eprint('failed to apply patch %s with exit status %s ' % (patch, e.returncode))
                     raise e
     return list(yaml.safe_load_all(data))
