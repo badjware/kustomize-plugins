@@ -26,7 +26,7 @@ def load_config():
 
     # validation
     validation_fail = False
-    if not placeholders_file:
+    if not placeholders_file and not placeholders:
         c.eprint('One of placeholders or placeholdersFile is required')
         validation_fail = True
     if validation_fail:
