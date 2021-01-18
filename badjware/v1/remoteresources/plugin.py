@@ -79,21 +79,21 @@ def run_plugin():
     config = load_config()
     all_resources = []
 
-    try:
-        for resource in config.resources:
+    for resource in config.resources:
+        try:
             all_resources = all_resources + get_resource(resource['url'], resource.get('sha256'), resource.get('patches'))
-    except yaml.YAMLError as e:
-        c.eprint("%s: invalid yaml" % url)
-        if hasattr(e, 'problem_mark'):
-            c.eprint(e.problem_mark)
-            c.eprint(e.problem)
-            if e.context is not None:
-                c.eprint(e.context)
-        raise e
-    except HTTPError as e:
-        c.eprint("%s: %s %s" % (url, e.code, e.reason))
-        raise e
-    except URLError as e:
-        c.eprint("%s: %s" % (url, e.reason))
-        raise e
+        except yaml.YAMLError as e:
+            c.eprint("%s: invalid yaml" % resource['url'])
+            if hasattr(e, 'problem_mark'):
+                c.eprint(e.problem_mark)
+                c.eprint(e.problem)
+                if e.context is not None:
+                    c.eprint(e.context)
+            raise e
+        except HTTPError as e:
+            c.eprint("%s: %s %s" % (resource['url'], e.code, e.reason))
+            raise e
+        except URLError as e:
+            c.eprint("%s: %s" % (resource['url'], e.reason))
+            raise e
     yaml.dump_all(all_resources, sys.stdout, default_flow_style=False)
